@@ -40,6 +40,5 @@ export const MoveRandom: AI = (self, world) => {
 
     const target = getRandomArrayElem(availableTiles);
     myPosition.setTo(target.position);
-    MessageDispatcher.dispatchMessage(formatString('%{col,red} moves randomly', 'Kobold'));
     return true;
 }

@@ -99,13 +99,18 @@ export class QueryBuilder {
         const result: any[][] = [];
         const excludes = args.filter(opt => opt.type === "exclude").map(el => fetchComponentId((el as QueryOptionExclude<T0>).data));
         const { entities, components } = this.world.getStorage();
+
         entities.forEach(entity => {
             const entry: (Component | Entity)[] = [];
-            if (excludes.some(exComponent => {
+
+            const hasExcludedComponents = excludes.some(exComponent => {
                 return !!components[exComponent][entity];
-            })) {
+            });
+
+            if (hasExcludedComponents) {
                 return;
             }
+
             for (let option of args) {
                 switch (option.type) {
                     case "entity":
@@ -114,8 +119,6 @@ export class QueryBuilder {
                     case "optionally":
                         entry.push(components[fetchComponentId((option as QueryOptionOptionally<T0>).data)][entity] || null);
                         break;
-                    case "exclude":
-                        continue;
                     case "include":
                         const componentData = components[fetchComponentId((option as QueryOptionInclude<T0>).data)][entity];
                         if (!componentData) return;
@@ -128,21 +131,3 @@ export class QueryBuilder {
         return result;
     }
 }
-
-
-// // Example
-// const world = new World();
-// class Position extends Component { }
-// class Velocity extends Component { }
-// class Acceleration extends Component { }
-// class Player extends Component { }
-
-// // Should be [Velocity, Acceleration | null][]
-// const [pos, vel, acc] = world.buildQuery().run(
-//     QueryBuilder.Include(Position),
-//     QueryBuilder.Optionally(Velocity),
-//     QueryBuilder.Exclude(Player),
-//     QueryBuilder.Optionally(Acceleration)
-// )[0];
-
-

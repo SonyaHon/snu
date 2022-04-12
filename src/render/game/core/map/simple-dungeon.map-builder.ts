@@ -4,6 +4,7 @@ import { MapBuilder } from "./map-builder";
 import { Tile } from "./tile";
 import { Map as RotMap } from 'rot-js';
 import { getRandomArrayElem } from "../../utils/random-array-elem";
+import { KoboldTemplate } from "../entity-templates";
 
 export class SimpleDungeonBulder extends MapBuilder {
     build(width: number, height: number): { tiles: Tile[]; playerPosition: Position; startingEntities: IStartingEntityPositionEntry[]; } {
@@ -21,10 +22,18 @@ export class SimpleDungeonBulder extends MapBuilder {
         const [playerX, playerY] = getRandomArrayElem(digger.getRooms()).getCenter();
         const playerPosition = new Position(playerX, playerY);
 
+        const startingEntities: IStartingEntityPositionEntry[] = digger.getRooms().map(room => {
+            const [x, y] = room.getCenter();
+            return new Position(x, y);
+        }).filter(position => !position.isEqual(playerPosition)).map(monsterPosition => ({
+            position: monsterPosition,
+            entityTemaplte: KoboldTemplate
+        }));
+
         return {
             tiles,
             playerPosition,
-            startingEntities: []
+            startingEntities,
         }
     }
 }

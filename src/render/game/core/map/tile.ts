@@ -1,3 +1,5 @@
+import Color from "color";
+import { Colors } from "../../utils/colors";
 import { Glyph } from "../components/glyph";
 
 export interface TileProperties {
@@ -9,20 +11,20 @@ export interface TileProperties {
 export class Tile extends Glyph {
 
     static Void() {
-        return new Tile(' ', 'white', 'black', { seeThrough: true, isVoid: true });
+        return new Tile(' ', Colors.White, Colors.Black, { seeThrough: true, isVoid: true });
     }
 
     static Floor() {
-        return new Tile('.', 'darkgrey', 'black', { walkable: true, seeThrough: true });
+        return new Tile('.', Colors.StoneFloor, Colors.Black, { walkable: true, seeThrough: true });
     }
 
     static Wall() {
-        return new Tile('#', 'grey', 'black', {});
+        return new Tile('#', Colors.StoneWall, Colors.Black, {});
     }
 
     private _hasBeenSeen = false;
 
-    constructor(char: string, fg: string, bg: string, private readonly properties: TileProperties) {
+    constructor(char: string, fg: Color, bg: Color, private readonly properties: TileProperties) {
         super(char, fg, bg);
     }
 
@@ -47,6 +49,11 @@ export class Tile extends Glyph {
     }
 
     serialize() {
-        return JSON.parse(JSON.stringify(this));
+        return {
+            ...super.serialize(),
+            properties: {
+                ...this.properties,
+            }
+        }
     }
 }

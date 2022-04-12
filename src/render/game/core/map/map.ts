@@ -1,3 +1,4 @@
+import Color from "color";
 import { Camera } from "../camera";
 import { Position } from "../components/position";
 import { DisplayManager } from "../display";
@@ -21,7 +22,7 @@ export class Map {
     static FromSerializedState(serializedState: SerializedGameState['map']): Map {
         const map = new Map(serializedState.width, serializedState.height, serializedState.name);
         map.staticTiles = serializedState.tileData.map((td) => {
-            const t = new Tile(td.char, td.fg, td.bg, td.properties);
+            const t = new Tile(td.char, new Color(td.fg), new Color(td.bg), td.properties);
             if (td._hasBeenSeen) {
                 t.setAsSeen();
             }

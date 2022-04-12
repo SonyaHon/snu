@@ -22,6 +22,16 @@ import { Fov } from "./components/fov";
 import { SysCalculateFov } from "./systems/calculate-fov";
 import { RNG } from "rot-js";
 import { SimpleDungeonBulder } from "./map/simple-dungeon.map-builder";
+import { Hostile } from "./components/hostile";
+import { MeleeAttackable } from "./components/melee-attackable";
+import { AttackerMelee } from "./components/attacker-melee";
+import { DiceDmg } from "../utils/dice-dmg";
+import { Colors } from "../utils/colors";
+import { SysUpdateWhatsAround } from "./systems/update-whats-around";
+import { Creature } from "./components/creature";
+import { Health } from "./components/health";
+import { Mortal } from "./components/mortal";
+import { SysMortalsDie } from "./systems/mortals-die";
 
 export enum GameHook {
     PlayerInput = 'hook:player-input',
@@ -78,6 +88,12 @@ export const ComponentsMap = {
     [Initiative.name]: Initiative,
     [Actor.name]: Actor,
     [Fov.name]: Fov,
+    [Hostile.name]: Hostile,
+    [MeleeAttackable.name]: MeleeAttackable,
+    [AttackerMelee.name]: AttackerMelee,
+    [Creature.name]: Creature,
+    [Health.name]: Health,
+    [Mortal.name]: Mortal,
 }
 
 export class CGame {
@@ -92,9 +108,6 @@ export class CGame {
         RNG.setSeed(this.seed);
 
         // Hooks
-        this.world.registerHook(GameHook.PlayerInput);
-        this.world.registerHook(GameHook.KoboldTurn);
-
         this.world.registerHook(GameHook.RoundPreparation);
         this.world.registerHook(GameHook.RoundStart);
         this.world.registerHook(GameHook.RoundTurns);
@@ -104,22 +117,40 @@ export class CGame {
         this.world.registerHook(GameHook.Render);
 
         // Components
-        this.world.registerComponent(Renderable);
-        this.world.registerComponent(Position);
-        this.world.registerComponent(Glyph);
-        this.world.registerComponent(Player);
-        this.world.registerComponent(Actionable);
-        this.world.registerComponent(NonWalkThrough);
-        this.world.registerComponent(NPC);
-        this.world.registerComponent(Named);
-        this.world.registerComponent(Initiative);
-        this.world.registerComponent(Actor);
-        this.world.registerComponent(Fov);
+        [
+            Renderable,
+            Position,
+            Glyph,
+            Player,
+            Actionable,
+            NonWalkThrough,
+            NPC,
+            Named,
+            Initiative,
+            Actor,
+            Fov,
+            Hostile,
+            MeleeAttackable,
+            AttackerMelee,
+            Creature,
+            Health,
+            Mortal,
+        ].forEach(component => {
+            this.world.registerComponent(component);
+        });
 
         // Systems
-        this.world.bindSystem(GameHook.RoundStart, SysCalculateFov);
-        this.world.bindSystem(GameHook.RoundStart, SysCountInitiative);
+        this.world.bindSystem(GameHook.RoundPreparation, SysCalculateFov);
+        this.world.bindSystem(GameHook.RoundPreparation, SysCountInitiative);
+
+        this.world.bindSystem(GameHook.RoundStart, SysUpdateWhatsAround);
+
         this.world.bindSystem(GameHook.RoundTurns, SysDoAct);
+
+        this.world.bindSystem(GameHook.RoundEnd, SysCalculateFov);
+        this.world.bindSystem(GameHook.RoundEnd, SysMortalsDie);
+
+        this.world.bindSystem(GameHook.RoundCleanup, SysUpdateWhatsAround);
 
         this.world.bindSystem(GameHook.ClearScreen, SysClearScreen);
         this.world.bindSystem(GameHook.Render, SysRender);
@@ -130,10 +161,15 @@ export class CGame {
                 new Player(),
                 new Renderable(),
                 new Position(0, 0),
-                new Glyph('@', 'yellow', 'black'),
+                new Glyph('@', Colors.PlayerYellow, Colors.Black),
                 new Actor('player-ai'),
                 new Initiative(1),
                 new Fov(10),
+                new Named('player'),
+                new AttackerMelee(DiceDmg.FromString('2d6')),
+                new Creature(),
+                new NonWalkThrough(),
+                new Health(20, 20),
             );
             this.loadMap(new Map(50, 50, "Dungeon 1", new SimpleDungeonBulder()));
         }, 100);

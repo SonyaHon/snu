@@ -9,15 +9,11 @@ import { Exclude, Include, Optionally, System, World } from "../esc";
 import { Game } from "../game";
 
 export const SysRender: System = (world: World) => {
-
     const { width, height } = DisplayManager.getDimensions();
-
     const playerFov = world.getComponentFor(Game.getPlayerEntity(), Fov)!;
     const map = Game.getCurrentMap();
     map.addViwedTiles(playerFov.getTilesInView());
-
     const tiles = map.getTilesInCamera();
-    console.log(tiles);
 
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
@@ -26,8 +22,9 @@ export const SysRender: System = (world: World) => {
             if (playerFov.canSee(worldPosition) || tile.isVoid()) {
                 DisplayManager.drawGlyphAtScreenPosition(new Position(x, y), tile);
             } else {
-                const gl = new Glyph(tile.getChar(), 'brown', 'black');
-                DisplayManager.drawGlyphAtScreenPosition(new Position(x, y), gl);
+                const renderTarget = tile.copy();
+                renderTarget.darken({ fg: 0.5, bg: 0.5 });
+                DisplayManager.drawGlyphAtScreenPosition(new Position(x, y), renderTarget);
             }
         }
     }
@@ -40,7 +37,7 @@ export const SysRender: System = (world: World) => {
         Exclude(Player),
     ).forEach(([position, glyph]) => {
         const screenPosition = Camera.mapToScreenPosition(position);
-        if (Camera.positionInScreen(screenPosition)) {
+        if (Camera.positionInScreen(screenPosition) && playerFov.canSee(position)) {
             DisplayManager.drawGlyphAtScreenPosition(screenPosition, glyph);
         }
     });

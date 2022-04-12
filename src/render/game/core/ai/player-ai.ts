@@ -6,8 +6,9 @@ import { NonWalkThrough } from "../components/non-walk-through";
 import { Position } from "../components/position";
 import { Entity, Include, WithEntity, World } from "../esc";
 import { Game } from "../game";
-import { MessageDispatcher } from "../resources/message-dispatcher";
-import { formatString } from "../../utils/formatter";
+import { Hostile } from "../components/hostile";
+import { MeleeAttackable } from "../components/melee-attackable";
+import { MeleeAttack } from "./common-actions/melee-attack";
 
 const movePlayer = (self: Entity, world: World, x: number, y: number): boolean => {
     const position = world.getComponentFor(self, Position)!;
@@ -16,19 +17,27 @@ const movePlayer = (self: Entity, world: World, x: number, y: number): boolean =
     const { x: targetX, y: targetY } = targetPosition.getPosition();
     const tile = Game.getCurrentMap().getTileAt(targetX, targetY);
     if (tile && tile.isWalkable()) {
-
-        const nonWalkableEntities = world.buildQuery().run(Include(Position), Include(NonWalkThrough));
-        if (nonWalkableEntities.some(([position]) => {
-            return position.isEqual(targetPosition);
-        })) {
-            return false;
+        const meleeAttackableEntities = world.buildQuery().run(
+            Include(Position),
+            WithEntity(),
+            Include(MeleeAttackable),
+            Include(Hostile),
+        );
+        const bumpedEntity = meleeAttackableEntities.find(([position]) => position.isEqual(targetPosition));
+        if (bumpedEntity) {
+            const [, defender] = bumpedEntity;
+            return MeleeAttack(world, self, defender);
+        } else {
+            const nonWalkableEntities = world.buildQuery().run(Include(Position), Include(NonWalkThrough));
+            if (nonWalkableEntities.some(([position]) => {
+                return position.isEqual(targetPosition);
+            })) {
+                return false;
+            }
+            position.setTo(targetPosition);
+            Camera.addOffset(x, y);
+            return true
         }
-
-        position.setTo(targetPosition);
-        Camera.addOffset(x, y);
-
-        MessageDispatcher.dispatchMessage(formatString(`%{col,white} moves`, "Player"));
-        return true
     }
     return false;
 }

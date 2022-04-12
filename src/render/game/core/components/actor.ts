@@ -1,5 +1,4 @@
-import { AI } from "../ai/ai";
-import { MoveRandom } from "../ai/blocks/move-random.ai";
+import { KoboldAI } from "../ai/kobold-ai";
 import { PlayerAI } from "../ai/player-ai";
 import { Component, Entity, World } from "../esc";
 
@@ -7,7 +6,7 @@ import { Component, Entity, World } from "../esc";
 
 export const ais = {
     'player-ai': PlayerAI,
-    'kobold-ai': MoveRandom,
+    'kobold-ai': KoboldAI,
 }
 
 export type AIID = keyof typeof ais;

@@ -37,7 +37,13 @@ export class CDisplayManager {
     }
 
     drawGlyphAtScreenPosition(position: Position, glyph: Glyph) {
-        this.rotDisplay.draw(position.getX(), position.getY(), glyph.getChar(), glyph.getFg(), glyph.getBg());
+        this.rotDisplay.draw(
+            position.getX(),
+            position.getY(),
+            glyph.getChar(),
+            glyph.getFg().hex(),
+            glyph.getBg().hex()
+        );
     }
 
     clearScreen() {
