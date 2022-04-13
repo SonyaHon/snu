@@ -1,8 +1,8 @@
+import { Map as RotMap } from 'rot-js';
 import { Position } from "../components/position";
 import { IStartingEntityPositionEntry } from "./map";
 import { MapBuilder } from "./map-builder";
 import { Tile } from "./tile";
-import { Map as RotMap } from 'rot-js';
 import { getRandomArrayElem } from "../../utils/random-array-elem";
 import { KoboldTemplate } from "../entity-templates";
 
